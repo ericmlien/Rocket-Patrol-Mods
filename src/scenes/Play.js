@@ -40,6 +40,7 @@ class Play extends Phaser.Scene {
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or <- for Menu', scoreConfig).setOrigin(0.5);
             this.gameOver = true;
         }, null, this);
+        
     }
 
 
@@ -69,7 +70,7 @@ class Play extends Phaser.Scene {
             this.p1Rocket.reset();
             this.shipExplode(this.ship01);
         }
-        if(!this.gameOver) {               
+        if (!this.gameOver) {               
             this.p1Rocket.update();
             this.ship01.update();
             this.ship02.update();
@@ -99,6 +100,12 @@ class Play extends Phaser.Scene {
             ship.alpha = 1
             boom.destroy()
         })
+        const emitter = this.add.particles(ship.x + 20, ship.y, "booom", {
+            angle: {min: -180, max: 180},
+            speed: 150,
+            duration: 100,
+            lifespan: 300,
+        });
         this.p1Score += ship.points;
         this.scoreLeft.text = this.p1Score;
     }
