@@ -32,19 +32,42 @@ class Play extends Phaser.Scene {
             },
             fixedWidth: 100,
         }
+        let timerConfig = {
+            fontFamily: 'Courier',
+            fontSize: '28px',
+            backgroundColor: '#0398fc',
+            color: '#843605',
+            align: 'left',
+            padding: {
+                top: 5,
+                bottom: 5,
+            },
+            fixedWidth: 100,
+        }
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig);
         scoreConfig.fixedWidth = 0;
         this.gameOver = false;
-        this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
-            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
-            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or <- for Menu', scoreConfig).setOrigin(0.5);
-            this.gameOver = true;
-        }, null, this);
-        
+        this.timer = this.time.addEvent({
+            delay: game.settings.gameTimer,
+            callback: () => {
+                this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
+                this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or <- for Menu', scoreConfig).setOrigin(0.5);
+                this.gameOver = true;
+            },
+            callbackScope: this,
+            args: null,
+            loop: false,
+        })
+        this.timeLeft = this.add.text(config.width - (borderUISize + borderPadding + timerConfig.fixedWidth), borderUISize + borderPadding * 2, Math.floor(this.timer.getRemaining() % 1000), timerConfig);
+        var isFiring = false;
+        var hit = false;
+   
     }
 
 
     update() {
+        this.hit = false;
+        this.timeLeft.text = (Math.floor(this.timer.getRemaining() / 1000));
         if(this.gameOver){
             if (Phaser.Input.Keyboard.JustDown(keyRESET)){
                 this.scene.restart();
@@ -61,21 +84,29 @@ class Play extends Phaser.Scene {
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
             this.p1Rocket.reset();
             this.shipExplode(this.ship03);
+            this.hit = true;
         }
         if (this.checkCollision(this.p1Rocket, this.ship02)) {
             this.p1Rocket.reset();
             this.shipExplode(this.ship02);
+            this.hit = true;
         }
         if (this.checkCollision(this.p1Rocket, this.ship01)) {
             this.p1Rocket.reset();
             this.shipExplode(this.ship01);
+            this.hit = true;
         }
         if (!this.gameOver) {               
             this.p1Rocket.update();
             this.ship01.update();
             this.ship02.update();
             this.ship03.update();
-        } 
+        }
+        if (!(this.hit) && (this.isFiring == true && this.p1Rocket.isFiring == false)){
+            this.timer.delay -= 4000;
+
+        }            
+        this.isFiring = this.p1Rocket.isFiring;
     }
 
     checkCollision(rocket, ship) {
@@ -90,7 +121,7 @@ class Play extends Phaser.Scene {
       }
     }
 
-    shipExplode(ship) {
+    shipExplode(ship) {        
         ship.alpha = 0;
         let boom = this.add.sprite(ship.x, ship.y, "explosion").setOrigin(0, 0);
         boom.anims.play("explode");
@@ -105,8 +136,9 @@ class Play extends Phaser.Scene {
             speed: 150,
             duration: 100,
             lifespan: 300,
-        });
+        });        
         this.p1Score += ship.points;
         this.scoreLeft.text = this.p1Score;
+        this.timer.delay += 5000;
     }
 }
