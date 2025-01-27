@@ -58,7 +58,11 @@ class Play extends Phaser.Scene {
         this.timeLeft = this.add.text(config.width - (borderUISize + borderPadding + timerConfig.fixedWidth), borderUISize + borderPadding * 2, Math.floor(this.timer.getRemaining() % 1000), timerConfig);
         var isFiring = false;
         var hit = false;
-        this.input.on("pointerdown", () => this.p1Rocket.fire());
+        this.input.on("pointerdown", () => {
+            if (!this.gameOver){
+                this.p1Rocket.fire()
+            }
+        });
     }
 
 
